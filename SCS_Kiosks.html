@@ -66,6 +66,9 @@
                     return;
                 }
                 
+                // Add a log to show what the app is receiving
+                console.log('Received managed configuration:', config);
+
                 if (config && config.googleSlidesUrl) {
                     console.log('Managed configuration found. Setting URL:', config.googleSlidesUrl);
                     iframe.src = config.googleSlidesUrl;
