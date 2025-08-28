@@ -1,19 +1,19 @@
 {
-  "name": "Slides Kiosk",
-  "short_name": "Slides Kiosk",
-  "description": "A progressive web app for displaying Google Slides in kiosk mode.",
-  "start_url": "./index.html",
+  "name": "SCS Kiosk",
+  "short_name": "SCS Kiosk",
+  "start_url": ".",
   "display": "fullscreen",
-  "background_color": "#1a1a1a",
-  "theme_color": "#333333",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "A kiosk application for displaying Google Slides presentations.",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/1a1a1a/ffffff?text=SK",
+      "src": "images/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://placehold.co/512x512/1a1a1a/ffffff?text=SK",
+      "src": "images/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
