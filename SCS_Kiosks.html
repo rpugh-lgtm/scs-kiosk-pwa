@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Google Slides Display</title>
+    <!--
+      This is the PWA manifest. It defines the app's metadata
+      like name, icons, and display properties for kiosk mode.
+    -->
+    <link rel="manifest" href="data:application/json;base64,eyJpY29ucyI6W3sic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3BuZyIsInNyYyI6Imh0dHBzOi8vcGxhY2Vob2xkLmNvLzUxMng1MTIvaGFzcy9mMzNkMjQ/dGV4dD1LU0wifV0sIm5hbWUiOiJLaW9zayBTbGlkZXMiLCJkaXNwbGF5Ijoic3RhbmRhbG9uZ-1_QYkBcAGg1_CZIvZp9Vn0GSQA-eC0FrmfEKbbdcFZ_ZDyodd7li_Wo6Habo-er1Ch9XPYzE9tMPeQmc/pubembed?start=true&loop=true&delayms=5000In">
+    <style>
+        /* A simple, clean style to make the iframe full-screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+        }
+        #slides-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!--
+      The iframe element that will display the Google Slides presentation.
+      Its 'src' will be set dynamically by JavaScript based on the kiosk's
+      managed configuration.
+    -->
+    <iframe id="slides-iframe" src=""></iframe>
+
+    <script>
+        // --- Managed Configuration & Auto-Refresh Logic ---
+
+        const iframe = document.getElementById('slides-iframe');
+
+        // This function retrieves the managed configuration.
+        // The navigator.managed API is only available on managed ChromeOS devices.
+        const getManagedConfiguration = async () => {
+            try {
+                let config;
+                if (typeof navigator.managed !== 'undefined' && typeof navigator.managed.getManagedConfiguration === 'function') {
+                    // This is the preferred API for web apps
+                    config = await navigator.managed.getManagedConfiguration(['googleSlidesUrl']);
+                } else if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.managed) {
+                    // This is a fallback for legacy or different Chrome versions/environments
+                    config = await new Promise((resolve, reject) => {
+                        chrome.storage.managed.get('googleSlidesUrl', (result) => {
+                            if (chrome.runtime.lastError) {
+                                reject(chrome.runtime.lastError);
+                            } else {
+                                resolve(result);
+                            }
+                        });
+                    });
+                } else {
+                    console.error('Neither navigator.managed nor chrome.storage.managed are available.');
+                    return;
+                }
+                
+                if (config && config.googleSlidesUrl) {
+                    console.log('Managed configuration found. Setting URL:', config.googleSlidesUrl);
+                    iframe.src = config.googleSlidesUrl;
+                } else {
+                    console.error('No valid managed configuration found.');
+                }
+            } catch (error) {
+                console.error('Error retrieving managed configuration:', error);
+            }
+        };
+
+        // This function sets up the auto-refresh interval.
+        const setupRefreshInterval = () => {
+            const refreshIntervalInMinutes = 5;
+            const refreshIntervalInMilliseconds = refreshIntervalInMinutes * 60 * 1000;
+            
+            setInterval(() => {
+                console.log('Refreshing iframe...');
+                iframe.src = iframe.src;
+            }, refreshIntervalInMilliseconds);
+        };
+
+        // Wait for the DOM to be ready before getting the config and setting up the refresh.
+        document.addEventListener('DOMContentLoaded', () => {
+            getManagedConfiguration();
+            setupRefreshInterval();
+        });
+
+    </script>
+</body>
+</html>
