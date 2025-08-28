@@ -3,118 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slides Kiosk</title>
+    <title>SCS Kiosk</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered! Scope:', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('Service Worker registration failed:', err);
+                    });
+            });
+        }
+    </script>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="SCS Kiosk">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <meta name="theme-color" content="#FFFFFF">
+
     <style>
-        /* General styles for the kiosk app */
+        /* Kiosk-specific CSS for a full-screen display */
         body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        iframe {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Prevent scrolling */
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
+            border: none;
+        }
+        .message-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            height: 100vh;
             text-align: center;
-        }
-
-        /* Styles for the iframe holding the presentation */
-        #slides-frame {
-            border: none;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        
-        /* Styles for the loading and error message container */
-        .message-container {
-            padding: 2rem;
-            max-width: 80%;
-        }
-
-        .message-container h1 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .message-container p {
-            font-size: 1rem;
-            line-height: 1.5;
-            color: #cccccc;
-        }
-
-        .message-container a {
-            color: #66b2ff;
-            text-decoration: underline;
+            color: #555;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <div id="loading-message" class="message-container">
-        <h1>Welcome to Slides Kiosk</h1>
-        <p>
-            Please provide a Google Slides embed URL as a query parameter in the address bar.
-            <br>
-            Example: <code>?slideUrl=https://docs.google.com/presentation/d/e/2PACX-1vQ.../embed?start=true&loop=true&delayms=3000</code>
-            <br>
-            Make sure your presentation is published to the web with the embed option.
-        </p>
+
+    <div id="kiosk-content">
+        <iframe id="kioskFrame" src=""></iframe>
     </div>
-
-    <iframe id="slides-frame" style="display: none;"></iframe>
-
+    
     <script>
-        // Load the Inter font from Google Fonts
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap';
-        document.head.appendChild(link);
-
-        // Get the iframe and message elements
-        const iframe = document.getElementById('slides-frame');
-        const messageContainer = document.getElementById('loading-message');
-
-        /**
-         * Parses the URL to get query parameters.
-         * @param {string} urlParam The name of the URL parameter to retrieve.
-         * @returns {string|null} The value of the URL parameter or null if not found.
-         */
-        function getUrlParameter(urlParam) {
-            const url = new URL(window.location.href);
-            return url.searchParams.get(urlParam);
-        }
-
-        /**
-         * Initializes the kiosk by checking for a slide URL and setting up the refresh.
-         */
-        function initializeKiosk() {
-            const slideUrl = getUrlParameter('slideUrl');
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const slideUrl = params.get('slideUrl');
+            const kioskFrame = document.getElementById('kioskFrame');
+            
             if (slideUrl) {
-                // If a slide URL is found, hide the message and show the iframe
-                messageContainer.style.display = 'none';
-                iframe.src = slideUrl;
-                iframe.style.display = 'block';
-
-                // Set a timer to refresh the iframe every 5 minutes (300000 milliseconds)
-                setInterval(() => {
-                    console.log('Refreshing slides to check for updates...');
-                    iframe.src = slideUrl; // Re-assigning the src reloads the iframe
-                }, 300000); // 5 minutes in milliseconds
-
+                // Decode the URL to handle any special characters
+                const decodedUrl = decodeURIComponent(slideUrl);
+                kioskFrame.src = decodedUrl;
             } else {
-                // If no slide URL is found, show the message
-                messageContainer.style.display = 'flex';
-                iframe.style.display = 'none';
+                // Display a fallback message if no URL is provided
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'message-container';
+                messageContainer.innerHTML = '<h1>No Slide URL Found</h1><p>Please configure the kiosk with a Google Slides URL in the query string (e.g., ?slideUrl=...)</p>';
+                
+                const kioskContent = document.getElementById('kiosk-content');
+                kioskContent.innerHTML = '';
+                kioskContent.appendChild(messageContainer);
+                console.error("No 'slideUrl' parameter found in the URL.");
             }
-        }
-
-        // Initialize the kiosk when the script loads
-        initializeKiosk();
-
+        });
     </script>
 </body>
 </html>
